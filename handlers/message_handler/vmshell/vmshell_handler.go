@@ -2,11 +2,11 @@ package vmshell
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	yiyan "github.com/ZinkLu/TGRobot/common"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	log "github.com/sirupsen/logrus"
 )
 
 const errorMessage = "服务器除了点问题☢️"
@@ -55,19 +55,21 @@ func (v *VmShellHandler) GetCorrectMessage(msg *tgbotapi.Message) string {
 	case 1:
 		si, err := v.client.GetServerInfo(v.serverId, true)
 		if err != nil {
+			log.Info(err)
 			return errorMessage
 		}
 		return si.GetBandWithStatus()
 	case 2:
 		si, err := v.client.GetServerInfo(v.serverId, true)
 		if err != nil {
+			log.Info(err)
 			return errorMessage
 		}
 		return si.GetServerStatus()
 	case 3:
 		yiyan, err := yiyan.GetYiYan()
 		if err != nil {
-			log.Println(err)
+			log.Info(err)
 			return "em，我似乎也说不出什么话了..."
 		}
 		return fmt.Sprintf("读读下面这句话吧:\n\n   %s", yiyan.Quote())

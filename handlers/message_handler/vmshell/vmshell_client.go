@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/antchfx/htmlquery"
+	log "github.com/sirupsen/logrus"
 )
 
 const HOST = "https://vmshell.com"
@@ -45,16 +45,16 @@ func (v *vmShellClient) GetServerInfo(serverId string, retry bool) (*ServerInfo,
 	res, err := v.client.Get(url.String())
 
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 	if res.StatusCode != 200 {
 		// 多次登录失败
 		if !retry {
-			log.Println("no retry on login, skip")
+			log.Info("no retry on login, skip")
 			return nil, fmt.Errorf("server unavailable")
 		}
-		log.Println("maybe need to login")
+		log.Info("maybe need to login")
 		// 2. 可能需要重新LogIn
 		v.GetServerInfo(serverId, false)
 	}
@@ -78,7 +78,7 @@ func (v *vmShellClient) Login() {
 		for {
 			time.Sleep(5 * time.Second)
 			if times > 5 {
-				log.Fatal("a lock is never been release!")
+				log.Error("a lock is never been release!")
 				return
 			}
 			if v.logged {
@@ -123,9 +123,9 @@ func (v *vmShellClient) Login() {
 
 errHandler:
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
-	log.Fatal("Get Token failed!")
+	log.Error("Get Token failed!")
 	v.lock.Unlock()
 	v.logged = true
 }
@@ -137,24 +137,24 @@ func (v *vmShellClient) GetCSRFToken() string {
 	}
 	res, err := v.client.Get(LOGIN_API) // Store cookies
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 		return ""
 	}
 
 	if res.StatusCode != 200 {
-		log.Fatal("get csrf token failed!")
+		log.Error("get csrf token failed!")
 		return ""
 	}
 
 	doc, err := htmlquery.Parse(res.Body)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 		return ""
 	}
 
 	doc = htmlquery.FindOne(doc, "//input[@name='token']")
 	if doc == nil {
-		log.Fatal("get csrf token from html failed!")
+		log.Error("get csrf token from html failed!")
 		return ""
 	}
 	for _, a := range doc.Attr {
@@ -162,7 +162,7 @@ func (v *vmShellClient) GetCSRFToken() string {
 			return a.Val
 		}
 	}
-	log.Fatal("no csrf attr found!")
+	log.Error("no csrf attr found!")
 	return ""
 }
 

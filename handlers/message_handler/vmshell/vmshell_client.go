@@ -49,7 +49,7 @@ func (v *vmShellClient) GetServerInfo(serverId string, retry bool) (*ServerInfo,
 		return nil, err
 	}
 	if res.StatusCode != 200 {
-		// 多次登录失败
+		// cookies out of Date
 		if !retry {
 			log.Info("no retry on login, skip")
 			return nil, fmt.Errorf("server unavailable")
@@ -60,10 +60,17 @@ func (v *vmShellClient) GetServerInfo(serverId string, retry bool) (*ServerInfo,
 	}
 
 	si := &ServerInfo{}
-	body, err := ioutil.ReadAll(res.Body)
+	body, _ := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, si)
 	if err != nil {
-		return nil, err
+		// cookies out of date
+		if !retry {
+			log.Info("no retry on login, skip")
+			return nil, fmt.Errorf("server unavailable")
+		}
+		log.Info("maybe need to login")
+		// 2. 可能需要重新LogIn
+		v.GetServerInfo(serverId, false)
 	}
 	return si, nil
 }

@@ -17,11 +17,11 @@ type VmShellHandler struct {
 }
 
 // 只有在群里面 @机器人 或者直接单聊机器人的可以回复
-func CanReply(msg *tgbotapi.Message) bool {
+func CanReply(msg *tgbotapi.Message, botName string) bool {
 	canReplay := false
 
 	// 群内的 @ 消息
-	if msg.Chat.Type == "group" && strings.Contains(msg.Text, "@vmshell_network_manager_bot") {
+	if msg.Chat.Type == "group" && strings.Contains(msg.Text, botName) {
 		canReplay = true
 	}
 	// 单聊的消息
@@ -35,7 +35,7 @@ func CanReply(msg *tgbotapi.Message) bool {
 
 func (v *VmShellHandler) Handle(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 	// 判断是否要发消息
-	if !CanReply(msg) {
+	if !CanReply(msg, bot.Self.UserName) {
 		return
 	}
 	var message = ""

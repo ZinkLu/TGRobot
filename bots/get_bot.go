@@ -34,7 +34,7 @@ func GetBotAndListen(apiKey string, debug bool, handlers []handler.TgHandler) {
 	updates := bot.GetUpdatesChan(updateConfig)
 	for update := range updates {
 		for _, handler := range handlers {
-			handler.Handle(update, bot)
+			go handler.Handle(update, bot)
 		}
 	}
 }

@@ -18,7 +18,7 @@ func (h MessageHandler) Handle(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		return
 	}
 	for _, handler := range h.subHandlers {
-		handler.Handle(update.Message, bot)
+		go handler.Handle(update.Message, bot)
 	}
 }
 

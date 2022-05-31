@@ -89,6 +89,10 @@ func (v *vmShellClient) Login() {
 		}
 	}
 
+	// clear cookies
+	host, _ := url.Parse(HOST)
+	v.client.Jar.SetCookies(host, v.client.Jar.Cookies(host)[:0])
+
 	v.logged = false
 	var err error
 	var token string = ""

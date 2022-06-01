@@ -56,6 +56,7 @@ func (v *vmShellClient) GetServerInfo(serverId string, retry bool) (*ServerInfo,
 		}
 		log.Info("maybe need to login")
 		// 2. 可能需要重新LogIn
+		v.Login()
 		v.GetServerInfo(serverId, false)
 	}
 
@@ -70,6 +71,7 @@ func (v *vmShellClient) GetServerInfo(serverId string, retry bool) (*ServerInfo,
 		}
 		log.Info("maybe need to login")
 		// 2. 可能需要重新LogIn
+		v.Login()
 		v.GetServerInfo(serverId, false)
 	}
 	return si, nil

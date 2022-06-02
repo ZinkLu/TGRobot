@@ -57,7 +57,7 @@ func (v *vmShellClient) GetServerInfo(serverId string, retry bool) (*ServerInfo,
 		log.Info("maybe need to login")
 		// 2. 可能需要重新LogIn
 		v.Login()
-		v.GetServerInfo(serverId, false)
+		return v.GetServerInfo(serverId, false)
 	}
 
 	si := &ServerInfo{}
@@ -72,7 +72,7 @@ func (v *vmShellClient) GetServerInfo(serverId string, retry bool) (*ServerInfo,
 		log.Info("maybe need to login")
 		// 2. 可能需要重新LogIn
 		v.Login()
-		v.GetServerInfo(serverId, false)
+		return v.GetServerInfo(serverId, false)
 	}
 	return si, nil
 }
@@ -181,5 +181,19 @@ func (v *vmShellClient) GetCSRFToken() string {
 
 func newClient(username, password string) *vmShellClient {
 	jar, _ := cookiejar.New(nil)
+
+	// 模拟cookie过期
+	// u, _ := url.Parse(HOST)
+
+	// jar.SetCookies(u, []*http.Cookie{
+	// 	{
+	// 		Name:     "foo",
+	// 		Value:    "bar",
+	// 		Path:     "/",
+	// 		HttpOnly: true,
+	// 		Secure:   true,
+	// 	},
+	// })
+
 	return &vmShellClient{username: username, password: password, lock: &sync.Mutex{}, client: &http.Client{Timeout: 30 * time.Second, Jar: jar}}
 }

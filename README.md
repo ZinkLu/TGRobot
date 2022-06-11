@@ -32,7 +32,7 @@ apiToken: xxx
 debug: false
 handlers:
     message_handler:
-        vmshell: xxx
+        vmShell: xxx
         anotherMessageHandler: xxx
     command_handler:
         xxx: Xxx
@@ -60,19 +60,16 @@ vmshell is a message handler yet a command handler，but since it process raw di
 ```yaml
 handlers:
     message_handler:
-        vmshell:
+        vmShell:
             username: vmshellAccount
             password: vmshellAccountPassword
-            serverids:
-                - id1
-                - id2
-                - id3
+            serverId: serviceID
 ```
 
-- `handers.message_handler.vmshell`:
+- `handers.message_handler.vmShell`:
     - `username`: vmshell account
     - `password`: vmshell password
-    - `serverids`: servers which you wants to control.
+    - `serverId`: server which you wants to control.
 
 > warning!
 > 
@@ -80,11 +77,29 @@ handlers:
 > 
 > until vmshell servers can be access through apiToken which is under developed according to their customer service.
 
-`serverid` can be found in service/product detail page url:
+#### HOW TO GET serverId
 
-![serverid](docs/static/serverid.jpg)
+1. open your services list
 
-if `serverids` is empty, robot will get all server ids for you when you ask to control a server.
+2. press `F12` to open develop console
+
+3. remember to select `preserve log` and filter `Fetch/XHR`
+
+4. select a server, just like the picture below:
+
+    ![s1](docs/static/step1.jpg)
+
+5. then your console should trace a XHR request which contains `serverId`:
+
+    ![s2](docs/static/step2.jpg)
+
+```
+TODO:
+
+make serverId to serverIds so we can control multiple servers.
+
+and can get all servers automatically for you to select.
+```
 
 ### usage
 
@@ -115,6 +130,7 @@ since telegram have many message types, the source codes are structured to handl
 ```
 ├── handlers
 │   ├── handlers.go
+|   ├── register.go
 │   └── message_handler
 │       ├── message_handler.go
 │       └── vmshell
@@ -123,4 +139,11 @@ since telegram have many message types, the source codes are structured to handl
 │           ├── vmshell_client.go
 │           ├── vmshell_client_test.go
 │           └── vmshell_handler.go
+|   ├── image_handler(not implement)
+|   ├── video_handler(not implement)
+|   ├── command_handler(not implement)
 ```
+
+## add your own handler
+
+TDB...

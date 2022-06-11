@@ -1,33 +1,101 @@
 package message_handler
 
 import (
-	vmshell "github.com/ZinkLu/TGRobot/handlers/message_handler/vmshell"
+	"fmt"
+	"sort"
+	"strings"
+
+	config "github.com/ZinkLu/TGRobot/config"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+var MESSAGE_HANDLER = &MessageHandler{}
+
 type MessageHandlerInterface interface {
 	Handle(*tgbotapi.Message, *tgbotapi.BotAPI)
+	Init(*config.ConfigUnmarshaler)
+	When(*tgbotapi.Message) bool // for Chain of Responsibility
+	Order() int                  // for Chain of Responsibility, less is higher
+	Help() string
+	Name() string
 }
 
 type MessageHandler struct {
-	subHandlers []MessageHandlerInterface
+	AppHandlers []MessageHandlerInterface
 }
 
-func (h MessageHandler) Handle(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
-	if update.Message == nil {
+/*
+MessageHandler can handler:
+	direct message
+	group message with @bot
+*/
+
+func CanHandler(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) bool {
+	botName := bot.Self.UserName
+	canReplay := false
+	// 群内的 @ 消息
+	if msg.Chat.Type == "group" && strings.Contains(msg.Text, botName) {
+		canReplay = true
+	}
+	// 单聊的消息
+
+	if msg.Chat.Type != "group" && msg.Text != "" {
+		canReplay = true
+	}
+	return canReplay
+}
+
+// Handle(tgbotapi.Update, *tgbotapi.BotAPI)
+func (h *MessageHandler) Handle(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
+	// not a message or can not handler
+	if update.Message == nil || !CanHandler(update.Message, bot) {
 		return
 	}
-	for _, handler := range h.subHandlers {
-		go handler.Handle(update.Message, bot)
+
+	for _, handler := range h.AppHandlers {
+		if handler.When(update.Message) {
+			handler.Handle(update.Message, bot)
+			return
+		}
+	}
+
+	// otherwise return help information
+	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, h.Help()))
+
+}
+
+func (mh *MessageHandler) Init(configUnmarshaler *config.ConfigUnmarshaler) {
+	for _, mh := range mh.AppHandlers {
+		mh.Init(configUnmarshaler)
 	}
 }
 
-// add a handler if you like
-func NewMessageHandler(configString string) *MessageHandler {
-	res := make([]MessageHandlerInterface, 0, 0)
-	h1, err := vmshell.New(configString)
-	if err == nil {
-		res = append(res, h1)
+/*
+	1. HandlerName:
+		HelPInfo
+	2. HandlerName:
+		HelpInfo
+*/
+func (mh *MessageHandler) Help() string {
+	if len(mh.AppHandlers) == 0 {
+		return "我什么也做不了..."
 	}
-	return &MessageHandler{subHandlers: res}
+	const HELPER = "我可以：\n"
+
+	sb := strings.Builder{}
+
+	for _, ah := range mh.AppHandlers {
+		s := fmt.Sprintf("    %s\n", ah.Help())
+		sb.WriteString(s)
+	}
+
+	return HELPER + sb.String()
+}
+
+// call Register to enable a handler
+func Register(h MessageHandlerInterface) {
+	MESSAGE_HANDLER.AppHandlers = append(MESSAGE_HANDLER.AppHandlers, h)
+	sort.Slice(MESSAGE_HANDLER.AppHandlers, func(i, j int) bool {
+		return MESSAGE_HANDLER.AppHandlers[i].Order() < MESSAGE_HANDLER.AppHandlers[j].Order()
+	})
 }

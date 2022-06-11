@@ -1,4 +1,4 @@
-package common
+package yiyan
 
 import (
 	"encoding/json"

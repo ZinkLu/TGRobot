@@ -1,0 +1,9 @@
+# a config example
+handlers:
+  message_handler:
+    vmShell:
+      username: xxx
+      password: xxx
+      serverId: xxx
+apiToken: ""
+debug: true

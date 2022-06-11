@@ -1,20 +1,75 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
-type Config struct {
-	ApiToken string `json:"apiToken"`
-	Debug    bool   `json:"debug"`
+type HandlerConfig struct {
+	MessageHandler, CommandHandler *ConfigUnmarshaler
 }
 
+type GlobalConfig struct {
+	ApiToken       string `configKey:"apiToken"`
+	Debug          bool   `configKey:"debug"`
+	Handlers       Config `configKey:"handlers"`
+	HandlersConfig *HandlerConfig
+}
+
+func LoadTgBotConfig(configPath string) *GlobalConfig {
+	config := &GlobalConfig{}
+	content, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	var filesInfo = strings.Split(configPath, ".")
+	var filesExtension = filesInfo[len(filesInfo)-1]
+	configUnmarshal := NewConfigUnmarshaler(content, filesExtension)
+
+	configUnmarshal.UnmarshalConfig(config, "")
+	addHandlerConfig(config)
+	return config
+}
+
+// unmarshal handler config for GlobalConfig object
+func addHandlerConfig(config *GlobalConfig) {
+	var hc = &HandlerConfig{}
+	hs := config.Handlers
+	if hs == nil {
+		panic("config should have 'handlers' property")
+	}
+
+	messageHandler, ok := hs["message_handler"]
+	if ok {
+		mh, ok := messageHandler.(Config)
+		if ok {
+			hc.MessageHandler = &ConfigUnmarshaler{mh}
+		}
+	}
+	commandHandler, ok := hs["command_handler"]
+	if ok {
+		ch, ok := commandHandler.(Config)
+		if ok {
+			hc.CommandHandler = &ConfigUnmarshaler{ch}
+		}
+	}
+	config.HandlersConfig = hc
+}
+
+/*
+	for debug usage
+
+
+
+
+
+
+
+*/
 func Filename() (string, error) {
 	_, filename, _, ok := runtime.Caller(1)
 	if !ok {
@@ -32,26 +87,8 @@ func Dirname() (string, error) {
 	return filepath.Dir(filename), nil
 }
 
-func LoadConfig() (*Config, string) {
-	dir, _ := os.Getwd()
-	config_path := path.Join(dir, "config", "config_secret.json")
-	content, err := ioutil.ReadFile(config_path)
-	if err != nil {
-		panic(err.Error())
-	}
-	config := &Config{}
-	json.Unmarshal(content, config)
-	return config, string(content)
-}
-
-func LoadDebugConfig() (*Config, string) {
+func LoadDebugConfig() *GlobalConfig {
 	dir, _ := Dirname()
 	config_path := path.Join(dir, "config_secret.json")
-	content, err := ioutil.ReadFile(config_path)
-	if err != nil {
-		panic(err.Error())
-	}
-	config := &Config{}
-	json.Unmarshal(content, config)
-	return config, string(content)
+	return LoadTgBotConfig(config_path)
 }

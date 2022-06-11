@@ -17,7 +17,7 @@ func GetBot(apiKey string, debug bool) *tgbotapi.BotAPI {
 	return bot
 }
 
-func GetBotAndListen(apiKey string, debug bool, handlers []handler.TgHandler) {
+func GetBotAndListen(apiKey string, debug bool, handlers []handler.TelegramHandlerInterface) {
 	bot := GetBot(apiKey, debug)
 
 	// Create a new UpdateConfig struct with an offset of 0. Offsets are used
@@ -34,7 +34,7 @@ func GetBotAndListen(apiKey string, debug bool, handlers []handler.TgHandler) {
 	updates := bot.GetUpdatesChan(updateConfig)
 	for update := range updates {
 		for _, handler := range handlers {
-			go handler.Handle(update, bot)
+			go handler.Handle(update, bot) // Visitor
 		}
 	}
 }

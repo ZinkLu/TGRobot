@@ -1,100 +1,104 @@
 package vmshell
 
 import (
-	"fmt"
 	"strings"
 
-	yiyan "github.com/ZinkLu/TGRobot/common"
+	"github.com/ZinkLu/TGRobot/config"
+	"github.com/ZinkLu/TGRobot/handlers/message_handler"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	log "github.com/sirupsen/logrus"
 )
 
-const errorMessage = "服务器除了点问题☢️"
+const errorMessage = "服务器出了点问题☢️"
+const helpMessage = "查\"流量\"，查询\"服务器状态\""
+
+const (
+	USAGE = "流量"
+	INFO  = "服务器"
+)
+
+var replyMessage = [2]string{USAGE, INFO}
 
 type VmShellHandler struct {
 	client   *vmShellClient
 	serverId string
 }
 
-// 只有在群里面 @机器人 或者直接单聊机器人的可以回复
-func CanReply(msg *tgbotapi.Message, botName string) bool {
-	canReplay := false
-
-	// 群内的 @ 消息
-	if msg.Chat.Type == "group" && strings.Contains(msg.Text, botName) {
-		canReplay = true
-	}
-	// 单聊的消息
-
-	if msg.Chat.Type != "group" && msg.Text != "" {
-		canReplay = true
-	}
-
-	return canReplay
-}
-
-func (v *VmShellHandler) Handle(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	// 判断是否要发消息
-	if !CanReply(msg, bot.Self.UserName) {
-		return
-	}
-	var message = ""
-	message = v.GetCorrectMessage(msg)
-	sendMessage := tgbotapi.NewMessage(msg.Chat.ID, message)
-	bot.Send(sendMessage)
-}
-
-func (v *VmShellHandler) GetCorrectMessage(msg *tgbotapi.Message) string {
+func (v *VmShellHandler) getCorrectMessage(msg *tgbotapi.Message) string {
 	msg_string := msg.Text
 
-	msgType := GetMessageType(msg_string)
+	msgType := getMessageType(msg_string)
 
 	switch msgType {
-	case 0:
-		return "你是要查询？流量? 服务器状态? ip地址？或者念一句话？"
-	case 1:
+	case "":
+		return helpMessage
+	case USAGE:
 		si, err := v.client.GetServerInfo(v.serverId, true)
 		if err != nil {
 			log.Info(err)
 			return errorMessage
 		}
 		return si.GetBandWithStatus()
-	case 2:
+	case INFO:
 		si, err := v.client.GetServerInfo(v.serverId, true)
 		if err != nil {
 			log.Info(err)
 			return errorMessage
 		}
 		return si.GetServerStatus()
-	case 3:
-		yiyan, err := yiyan.GetYiYan()
-		if err != nil {
-			log.Info(err)
-			return "em，我似乎也说不出什么话了..."
-		}
-		return fmt.Sprintf("读读下面这句话吧:\n\n   %s", yiyan.Quote())
 	default:
 		return "你已经进入了异次元，你是怎么进来的？"
 	}
 
 }
 
-func GetMessageType(msg string) int {
-	if strings.Contains(msg, "流量") {
-		return 1
-	} else if strings.Contains(msg, "服务器") {
-		return 2
-	} else if strings.Contains(msg, "一句话") {
-		return 3
+func (vh *VmShellHandler) Handle(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	var message = ""
+	message = vh.getCorrectMessage(msg)
+	sendMessage := tgbotapi.NewMessage(msg.Chat.ID, message)
+	bot.Send(sendMessage)
+}
+
+// init Client
+func (vh *VmShellHandler) Init(config *config.ConfigUnmarshaler) {
+	c := &Config{}
+	config.UnmarshalConfig(c, vh.Name())
+	vh.client = newClient(c.Username, c.Password)
+	vh.serverId = c.ServerId
+}
+
+func (vh *VmShellHandler) When(msg *tgbotapi.Message) bool {
+	for _, v := range replyMessage {
+		if strings.Contains(msg.Text, v) {
+			return true
+		}
+	}
+	return false
+}
+
+func (vh *VmShellHandler) Order() int {
+	return 1
+}
+
+func (vh *VmShellHandler) Help() string {
+	return helpMessage
+}
+
+func (vh *VmShellHandler) Name() string {
+	return "vmShell"
+}
+
+func getMessageType(msg string) string {
+	if strings.Contains(msg, USAGE) {
+		return USAGE
+	} else if strings.Contains(msg, INFO) {
+		return INFO
 	} else {
-		return 0
+		return ""
 	}
 }
 
-func New(jsonString string) (*VmShellHandler, error) {
-	config := fromJsonToConfig(jsonString)
-	if config.Username == "" {
-		return nil, fmt.Errorf("can't construct Config from json %s", jsonString)
-	}
-	return &VmShellHandler{client: newClient(config.Username, config.Password), serverId: config.ServerId}, nil
+func init() {
+	message_handler.Register(&VmShellHandler{})
 }

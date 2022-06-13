@@ -95,13 +95,6 @@ handlers:
 
     ![s2](docs/static/step2.jpg)
 
-```
-TODO:
-
-make serverId to serverIds so we can control multiple servers.
-
-and can get all servers automatically for you to select.
-```
 
 ### usage
 
@@ -112,6 +105,12 @@ currently, valid messages are:
 - `服务器`: get server info
 
 just send any message with theses keyword above to robot, it will retrieve the information for you.
+
+### TODO
+
+-[x] make serverId to serverIds so we can control multiple servers.
+
+-[] if serverIds is empty then robot can get all servers automatically for you to select.
 
 ## Hitokoto / yiyan Handler
 

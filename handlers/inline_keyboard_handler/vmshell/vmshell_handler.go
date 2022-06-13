@@ -16,8 +16,8 @@ type vmShellInlineKeyBoardHandler struct{}
 
 func (th *vmShellInlineKeyBoardHandler) Handle(update *tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	callback := update.CallbackQuery
-	reply := tgbotapi.NewMessage(callback.Message.Chat.ID, "")
-	var err error
+	message := update.CallbackQuery.Message
+	reply := tgbotapi.NewEditMessageTextAndMarkup(message.Chat.ID, message.MessageID, vm_message.ErrorMessage, tgbotapi.NewInlineKeyboardMarkup())
 
 	commands := strings.Split(callback.Data, "_")
 	command, s_id := commands[1], commands[2]
@@ -25,19 +25,15 @@ func (th *vmShellInlineKeyBoardHandler) Handle(update *tgbotapi.Update, bot *tgb
 	case vm_message.USAGE:
 		message_handler := pool.GetAppName[*vm_message.VmShellHandler]("vmShell")
 		if si, err := message_handler.Client.GetServerInfo(s_id, true); err == nil {
-			reply.Text = si.GetBandWithStatus()
+			reply = tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, si.GetBandWithStatus())
 		}
 	case vm_message.INFO:
 		message_handler := pool.GetAppName[*vm_message.VmShellHandler]("vmShell")
 		if si, err := message_handler.Client.GetServerInfo(s_id, true); err == nil {
-			reply.Text = si.GetServerStatus()
+			reply = tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, si.GetServerStatus())
 		}
 	default:
-		reply.Text = "你进入了异次元"
-	}
-
-	if err != nil {
-		reply.Text = vm_message.ErrorMessage
+		reply = tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, "你进入了异次元")
 	}
 
 	bot.Send(reply)

@@ -54,27 +54,53 @@ func (ah ConfigUnmarshaler) UnmarshalConfig(config interface{}, name string) err
 		appValue = ah.config
 	}
 
-	c := reflect.Indirect(reflect.ValueOf(config))
+	confObjValue := reflect.Indirect(reflect.ValueOf(config))
 
-	getType := c.Type()
+	confObjType := confObjValue.Type()
 	// getValue := reflect.ValueOf(c)
 
-	for i := 0; i < getType.NumField(); i++ {
-		field := getType.Field(i) // real key which should be get from value
+	for i := 0; i < confObjType.NumField(); i++ {
+		field := confObjType.Field(i) // real key which should be get from value
 		key := field.Tag.Get("configKey")
 		if key == "" {
 			key = field.Name
 		} // use filed name instead
-		kValue, ok := appValue[key]
+		configFile, ok := appValue[key]
 		if ok {
-			v := reflect.ValueOf(kValue)
-			f := c.Field(i)
-			if f.CanSet() {
-				f.Set(v) // wrong type should panic
+			configFileValue := reflect.ValueOf(configFile)
+			confField := confObjValue.Field(i)
+			if confField.CanSet() {
+				// switch on obj type
+				kind := confField.Type().Kind()
+				switch kind {
+				case reflect.Slice:
+					unmarshalSlice(configFileValue, confField)
+				default:
+					confField.Set(configFileValue)
+				}
 			}
 		}
 	}
 	return nil
+}
+
+// unmarshal data to obj, obj holds true data type
+// while data needs type assertion
+func unmarshalSlice(data reflect.Value, obj reflect.Value) {
+	eleKind := obj.Type().Elem().Kind()
+	switch eleKind {
+	// TODO: add different types of slice
+	case reflect.String:
+		dataSlice, _ := data.Interface().([]interface{})
+		tmpSlice := reflect.ValueOf([]string{})
+		for _, value := range dataSlice {
+			stringValue, ok := value.(string)
+			if ok {
+				tmpSlice = reflect.Append(tmpSlice, reflect.ValueOf(stringValue))
+			}
+		}
+		obj.Set(tmpSlice)
+	}
 }
 
 func NewConfigUnmarshaler(content []byte, ext string) *ConfigUnmarshaler {

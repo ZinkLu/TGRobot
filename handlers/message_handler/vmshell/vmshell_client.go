@@ -179,6 +179,21 @@ func (v *vmShellClient) GetCSRFToken() string {
 	return ""
 }
 
+// TODO: add cache
+func (v *vmShellClient) GetServersInfo(serverIds []string, retry bool) ([]*ServerInfo, error) {
+	infos := make([]*ServerInfo, len(serverIds))
+
+	for idx, serverId := range serverIds {
+		info, err := v.GetServerInfo(serverId, retry)
+		if err != nil {
+			return infos, err
+		} else {
+			infos[idx] = info
+		}
+	}
+	return infos, nil
+}
+
 func newClient(username, password string) *vmShellClient {
 	jar, _ := cookiejar.New(nil)
 

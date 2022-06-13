@@ -10,7 +10,8 @@ import (
 
 type YiYanHandler struct{}
 
-func (yiyan *YiYanHandler) Handle(m *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+func (yiyan *YiYanHandler) Handle(update *tgbotapi.Update, bot *tgbotapi.BotAPI) {
+	m := update.Message
 	yy, err := GetYiYan()
 	if err == nil {
 		bot.Send(tgbotapi.NewMessage(m.Chat.ID, yy.Quote()))
@@ -20,8 +21,8 @@ func (yiyan *YiYanHandler) Handle(m *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 func (yiyan *YiYanHandler) Init(_ *config.ConfigUnmarshaler) {
 }
 
-func (yiyan *YiYanHandler) When(m *tgbotapi.Message) bool {
-	return strings.Contains(m.Text, "一句话")
+func (yiyan *YiYanHandler) When(update *tgbotapi.Update) bool {
+	return strings.Contains(update.Message.Text, "一句话")
 }
 
 func (yiyan *YiYanHandler) Order() int {

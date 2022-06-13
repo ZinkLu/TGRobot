@@ -6,22 +6,14 @@ import (
 	"strings"
 
 	config "github.com/ZinkLu/TGRobot/config"
+	"github.com/ZinkLu/TGRobot/handlers/common"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var MESSAGE_HANDLER = &MessageHandler{}
 
-type MessageHandlerInterface interface {
-	Handle(*tgbotapi.Message, *tgbotapi.BotAPI)
-	Init(*config.ConfigUnmarshaler)
-	When(*tgbotapi.Message) bool // for Chain of Responsibility
-	Order() int                  // for Chain of Responsibility, less is higher
-	Help() string
-	Name() string
-}
-
 type MessageHandler struct {
-	AppHandlers []MessageHandlerInterface
+	AppHandlers []common.AppHandlerInterface
 }
 
 /*
@@ -53,8 +45,8 @@ func (h *MessageHandler) Handle(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	}
 
 	for _, handler := range h.AppHandlers {
-		if handler.When(update.Message) {
-			handler.Handle(update.Message, bot)
+		if handler.When(&update) {
+			handler.Handle(&update, bot)
 			return
 		}
 	}
@@ -93,7 +85,7 @@ func (mh *MessageHandler) Help() string {
 }
 
 // call Register to enable a handler
-func Register(h MessageHandlerInterface) {
+func Register(h common.AppHandlerInterface) {
 	MESSAGE_HANDLER.AppHandlers = append(MESSAGE_HANDLER.AppHandlers, h)
 	sort.Slice(MESSAGE_HANDLER.AppHandlers, func(i, j int) bool {
 		return MESSAGE_HANDLER.AppHandlers[i].Order() < MESSAGE_HANDLER.AppHandlers[j].Order()

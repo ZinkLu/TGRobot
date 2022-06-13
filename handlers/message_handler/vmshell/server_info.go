@@ -80,3 +80,8 @@ func (si *ServerInfo) GetServerStatus() string {
 	formatter := "ServerIP: %s\nDisk: %s\nMemory: %s\nCpus: %s\n"
 	return fmt.Sprintf(formatter, si.Connaddr, si.Disk, si.Memory, si.Cpus)
 }
+
+// get a simple one-lined information
+func (si *ServerInfo) GetOneLineInfo() string {
+	return si.Connaddr
+}

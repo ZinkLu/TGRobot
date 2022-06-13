@@ -10,7 +10,7 @@ import (
 )
 
 type HandlerConfig struct {
-	MessageHandler, CommandHandler *ConfigUnmarshaler
+	MessageHandler, CommandHandler, InlineKeyBoardHandler *ConfigUnmarshaler
 }
 
 type GlobalConfig struct {

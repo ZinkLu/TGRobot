@@ -1,74 +1,107 @@
 package vmshell
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ZinkLu/TGRobot/config"
 	"github.com/ZinkLu/TGRobot/handlers/message_handler"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	log "github.com/sirupsen/logrus"
 )
 
-const errorMessage = "服务器出了点问题☢️"
-const helpMessage = "查\"流量\"，查询\"服务器状态\""
+type serverInfoList = [][2]string
 
+const ErrorMessage = "服务器出了点问题☢️"
+const PREFIX = "vmServerId_"
+
+const helpMessage = "查\"流量\"，查\"信息\""
 const (
 	USAGE = "流量"
-	INFO  = "服务器"
+	INFO  = "信息"
 )
 
 var replyMessage = [2]string{USAGE, INFO}
 
 type VmShellHandler struct {
-	client   *vmShellClient
-	serverId string
+	Client    *vmShellClient
+	ServerIds []string
 }
 
-func (v *VmShellHandler) getCorrectMessage(msg *tgbotapi.Message) string {
+func (v *VmShellHandler) getInlineKeyboardsMessage(msg *tgbotapi.Message) (serverInfoList, error) {
+	result := make(serverInfoList, 0)
+	var err error
 	msg_string := msg.Text
-
 	msgType := getMessageType(msg_string)
-
-	switch msgType {
-	case "":
-		return helpMessage
-	case USAGE:
-		si, err := v.client.GetServerInfo(v.serverId, true)
+	if msgType != "" {
+		result, err = v.getKeyBoardRowsInfo(msgType)
 		if err != nil {
-			log.Info(err)
-			return errorMessage
+			err = fmt.Errorf(ErrorMessage)
 		}
-		return si.GetBandWithStatus()
-	case INFO:
-		si, err := v.client.GetServerInfo(v.serverId, true)
-		if err != nil {
-			log.Info(err)
-			return errorMessage
-		}
-		return si.GetServerStatus()
-	default:
-		return "你已经进入了异次元，你是怎么进来的？"
 	}
 
+	return result, err
 }
 
-func (vh *VmShellHandler) Handle(msg *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	var message = ""
-	message = vh.getCorrectMessage(msg)
-	sendMessage := tgbotapi.NewMessage(msg.Chat.ID, message)
-	bot.Send(sendMessage)
+/*
+	return [][2]string
+
+	[2]string means [keyboard text, keyboard, data]
+*/
+func (v *VmShellHandler) getKeyBoardRowsInfo(command string) (serverInfoList, error) {
+	res := make(serverInfoList, len(v.ServerIds))
+	infos, err := v.Client.GetServersInfo(v.ServerIds, true)
+	if err != nil {
+		return res, err
+	}
+
+	for idx, info := range infos {
+		t := [2]string{
+			info.GetOneLineInfo(),                     // text
+			PREFIX + command + "_" + v.ServerIds[idx], // data
+		}
+		res[idx] = t
+	}
+	return res, nil
+}
+
+func (vh *VmShellHandler) Handle(update *tgbotapi.Update, bot *tgbotapi.BotAPI) {
+	msg := update.Message
+	message, err := vh.getInlineKeyboardsMessage(msg)
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, err.Error()))
+		return
+	}
+
+	buttons := make([]tgbotapi.InlineKeyboardButton, len(message))
+	for idx, m := range message {
+		text, data := m[0], m[1]
+		buttons[idx] = tgbotapi.NewInlineKeyboardButtonData(text, data)
+	}
+	if len(buttons) == 0 {
+		bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "未找到服务器信息"))
+		return
+	}
+
+	row := tgbotapi.NewInlineKeyboardRow(buttons...)
+	markup := tgbotapi.NewInlineKeyboardMarkup(row)
+
+	tgMessage := tgbotapi.NewMessage(update.Message.Chat.ID, "请问需要查询那台服务器：")
+
+	tgMessage.ReplyMarkup = markup
+	bot.Send(tgMessage)
 }
 
 // init Client
 func (vh *VmShellHandler) Init(config *config.ConfigUnmarshaler) {
 	c := &Config{}
 	config.UnmarshalConfig(c, vh.Name())
-	vh.client = newClient(c.Username, c.Password)
-	vh.serverId = c.ServerId
+	vh.Client = newClient(c.Username, c.Password)
+	vh.ServerIds = c.ServerIds
 }
 
-func (vh *VmShellHandler) When(msg *tgbotapi.Message) bool {
+func (vh *VmShellHandler) When(update *tgbotapi.Update) bool {
+	msg := update.Message
 	for _, v := range replyMessage {
 		if strings.Contains(msg.Text, v) {
 			return true

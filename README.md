@@ -34,7 +34,7 @@ handlers:
     message_handler:
         vmShell: xxx
         anotherMessageHandler: xxx
-    command_handler:
+    inline_keyboard_handler:
         xxx: Xxx
     picture_handler:
         xxx: xxx
@@ -45,7 +45,7 @@ handlers:
 
 - `debug`: verbose message will be logged if set to true.
 
-`handlers` section contains different handlers configs.
+- `handlers` section contains different handlers configs.
 
 there are some handlers which can be used out of box:
 
@@ -55,7 +55,7 @@ vmshell handler helps you to get your vmshell server info or control your server
 
 ### config
 
-vmshell is a message handler yet a command handler，but since it process raw dialog messages, let's put it in `message_handler`: 
+vmshell is a message handler yet a inline-keyboard handler，but since it process raw dialog messages, let's put it in `message_handler`: 
 
 ```yaml
 handlers:
@@ -63,13 +63,15 @@ handlers:
         vmShell:
             username: vmshellAccount
             password: vmshellAccountPassword
-            serverId: serviceID
+            serverIds:
+                - xxx
+                - xxx
 ```
 
 - `handers.message_handler.vmShell`:
     - `username`: vmshell account
     - `password`: vmshell password
-    - `serverId`: server which you wants to control.
+    - `serverIds`: servers which you wants to control.
 
 > warning!
 > 

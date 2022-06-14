@@ -16,6 +16,7 @@ import (
 	_ "github.com/ZinkLu/TGRobot/handlers/inline_keyboard_handler/vmshell"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/send_keyboard_test_handler"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/vmshell"
+	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/weather"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/yiyan_handler"
 )
 
@@ -26,10 +27,10 @@ type TelegramHandlerInterface interface {
 func GetHandlers(config *config.GlobalConfig) []TelegramHandlerInterface {
 	// messageHandler
 	message_handler.MESSAGE_HANDLER.Init(config.HandlersConfig.MessageHandler)
-	pool.Add(message_handler.MESSAGE_HANDLER.AppHandlers...)
+	pool.AddAppHandler(message_handler.MESSAGE_HANDLER.AppHandlers...)
 
 	inline_keyboard_handler.INLINE_KEYBOARD_HANDLER.Init(config.HandlersConfig.InlineKeyBoardHandler)
-	pool.Add(inline_keyboard_handler.INLINE_KEYBOARD_HANDLER.AppHandlers...)
+	pool.AddAppHandler(inline_keyboard_handler.INLINE_KEYBOARD_HANDLER.AppHandlers...)
 
 	return []TelegramHandlerInterface{
 		message_handler.MESSAGE_HANDLER,

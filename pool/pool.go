@@ -8,7 +8,7 @@ type appHandlersMap map[string]common.AppHandlerInterface
 
 var POOL = make(appHandlersMap, 0)
 
-func Add(handlers ...common.AppHandlerInterface) {
+func AddAppHandler(handlers ...common.AppHandlerInterface) {
 	for _, handler := range handlers {
 		name := handler.Name()
 		_, ok := POOL[name]
@@ -20,7 +20,7 @@ func Add(handlers ...common.AppHandlerInterface) {
 }
 
 // name is unnecessary maybe..
-func GetAppName[T common.AppHandlerInterface](name string) T {
+func GetAppHandlerByName[T common.AppHandlerInterface](name string) T {
 	h, ok := POOL[name]
 	if !ok {
 		panic("no handler named " + name + "has register to bot")

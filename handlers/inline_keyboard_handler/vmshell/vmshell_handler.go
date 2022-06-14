@@ -30,13 +30,13 @@ func (th *vmShellInlineKeyBoardHandler) Handle(update *tgbotapi.Update, bot *tgb
 	case vm_message.USAGE:
 		// send a waiting message
 		sendWaitMessage(message, bot)
-		message_handler := pool.GetAppName[*vm_message.VmShellHandler]("vmShell")
+		message_handler := pool.GetAppHandlerByName[*vm_message.VmShellHandler]("vmShell")
 		if si, err := message_handler.Client.GetServerInfo(s_id, true); err == nil {
 			reply = tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, si.GetBandWithStatus())
 		}
 	case vm_message.INFO:
 		sendWaitMessage(message, bot)
-		message_handler := pool.GetAppName[*vm_message.VmShellHandler]("vmShell")
+		message_handler := pool.GetAppHandlerByName[*vm_message.VmShellHandler]("vmShell")
 		if si, err := message_handler.Client.GetServerInfo(s_id, true); err == nil {
 			reply = tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, si.GetServerStatus())
 		}

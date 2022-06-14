@@ -14,6 +14,11 @@ var th = &vmShellInlineKeyBoardHandler{}
 
 type vmShellInlineKeyBoardHandler struct{}
 
+func sendWaitMessage(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	msg := tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, "查询中，请稍后")
+	bot.Send(msg)
+}
+
 func (th *vmShellInlineKeyBoardHandler) Handle(update *tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	callback := update.CallbackQuery
 	message := update.CallbackQuery.Message
@@ -23,11 +28,14 @@ func (th *vmShellInlineKeyBoardHandler) Handle(update *tgbotapi.Update, bot *tgb
 	command, s_id := commands[1], commands[2]
 	switch command {
 	case vm_message.USAGE:
+		// send a waiting message
+		sendWaitMessage(message, bot)
 		message_handler := pool.GetAppName[*vm_message.VmShellHandler]("vmShell")
 		if si, err := message_handler.Client.GetServerInfo(s_id, true); err == nil {
 			reply = tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, si.GetBandWithStatus())
 		}
 	case vm_message.INFO:
+		sendWaitMessage(message, bot)
 		message_handler := pool.GetAppName[*vm_message.VmShellHandler]("vmShell")
 		if si, err := message_handler.Client.GetServerInfo(s_id, true); err == nil {
 			reply = tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, si.GetServerStatus())

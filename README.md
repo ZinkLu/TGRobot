@@ -108,9 +108,9 @@ just send any message with theses keyword above to robot, it will retrieve the i
 
 ### TODO
 
--[x] make serverId to serverIds so we can control multiple servers.
+- [x] make serverId to serverIds so we can control multiple servers.
 
--[] if serverIds is empty then robot can get all servers automatically for you to select.
+- [ ] if serverIds is empty then robot can get all servers automatically for you to select.
 
 ## Hitokoto / yiyan Handler
 

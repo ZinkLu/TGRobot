@@ -16,7 +16,6 @@ import (
 	_ "github.com/ZinkLu/TGRobot/handlers/inline_keyboard_handler/vmshell"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/send_keyboard_test_handler"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/vmshell"
-	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/weather"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/yiyan_handler"
 )
 

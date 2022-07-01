@@ -22,6 +22,34 @@ type ConfigUnmarshaler struct {
 	config Config
 }
 
+func processNumber(value reflect.Value, convertTo reflect.Kind) interface{} {
+	cType := value.Type().Kind()
+	switch cType {
+	case reflect.Float32, reflect.Float64, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v := value.Float()
+		switch convertTo {
+		case reflect.Float32:
+			return float32(v)
+		case reflect.Float64:
+			return float64(v)
+		case reflect.Int:
+			return int(v)
+		case reflect.Int8:
+			return int8(int(v))
+		case reflect.Int16:
+			return int16(int(v))
+		case reflect.Int32:
+			return int32(int(v))
+		case reflect.Int64:
+			return int64(int(v))
+		default:
+			panic(fmt.Sprintf("can't convert %s type to Number", value.Type().Name()))
+		}
+	default:
+		panic(fmt.Sprintf("can't convert %s type to Number", value.Type().Name()))
+	}
+}
+
 /*	UnmarshalConfig
 
 	unmarshal file to a config object;
@@ -75,6 +103,9 @@ func (ah ConfigUnmarshaler) UnmarshalConfig(config interface{}, name string) err
 				switch kind {
 				case reflect.Slice:
 					unmarshalSlice(configFileValue, confField)
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64:
+					v := processNumber(configFileValue, kind)
+					confField.Set(reflect.ValueOf(v))
 				default:
 					confField.Set(configFileValue)
 				}

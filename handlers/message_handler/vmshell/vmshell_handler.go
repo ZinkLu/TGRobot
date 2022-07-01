@@ -15,10 +15,10 @@ type serverInfoList = [][2]string
 const ErrorMessage = "服务器出了点问题☢️"
 const PREFIX = "vmServerId_"
 
-const helpMessage = "查\"流量\"，查\"信息\""
+const helpMessage = "查\"服务器流量\"，查\"服务器信息\""
 const (
-	USAGE = "流量"
-	INFO  = "信息"
+	USAGE = "服务器流量"
+	INFO  = "服务器信息"
 )
 
 var replyMessage = [2]string{USAGE, INFO}

@@ -21,11 +21,12 @@ const CONVERT = float32(1024 * 1024)
 
 var CACHE = make(map[int64]string)
 
-const FORMATTER = `你已经使用%.2fMB(%.2fGb). 如果想获取剩余流量，可以输入 "服务器流量" 查询
+const FORMATTER = `USAGE               ⏳ %.2fMB(%.2fGb).
+SPEED                ⬆️%.2fkb/s, ⬇️%.2fkb/s
+SPEED LIMIT      ⬆️%.2fkb/s, ⬇️%.2fkb/s
+ONLINE DEVICE 💻 %d(current) %d(total)
 
-你现在的速度上行是%.2fkb/s, 下行是%.2fkb/s，你的速度限制为%.2fkb/s / %.2fkb/s
-
-你有%d/%d个设备在线
+如果想获取剩余流量，可以输入 "服务器流量" 查询
 `
 
 type TGoHandler struct {

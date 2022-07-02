@@ -15,8 +15,8 @@ import (
 )
 
 const HELP = "查询\"我的流量\"(私信我)"
-const COMMAND = "查询我的流量"
-const PASS_QUERY = "请回复你的秘钥(回复本条消息)"
+const COMMAND = "我的流量"
+const PASS_QUERY = "输入秘钥（请选择本条消息后点击reply再发送）"
 const CONVERT = float32(1024 * 1024)
 
 var CACHE = make(map[int64]string)
@@ -86,17 +86,7 @@ func (tgo *TGoHandler) Handle(u *tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	msg := u.Message
 	var password string
 	var ok bool
-
-	// read from cache
-	if password, ok = CACHE[u_id]; ok {
-		status, err := tgo.GetUserStatus(password)
-		if err != nil {
-			bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "密码不正确，请重新再试"))
-		}
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, formatTraffic(status)))
-		return
-	}
-	// first query, get user's input password
+	// always handler user's reply
 	if msg.ReplyToMessage != nil && msg.ReplyToMessage.Text == PASS_QUERY {
 		password = msg.Text
 		// cache if success;
@@ -106,6 +96,15 @@ func (tgo *TGoHandler) Handle(u *tgbotapi.Update, bot *tgbotapi.BotAPI) {
 			return
 		}
 		CACHE[u_id] = password
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, formatTraffic(status)))
+		return
+	}
+	// read from cache
+	if password, ok = CACHE[u_id]; ok {
+		status, err := tgo.GetUserStatus(password)
+		if err != nil {
+			bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "密码不正确，请重新再试"))
+		}
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, formatTraffic(status)))
 		return
 	}

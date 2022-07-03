@@ -103,9 +103,9 @@ handlers:
 
 currently, valid messages are:
 
-- `流量`: get server bandwidth usage
+- `服务器流量`: get server bandwidth usage
 
-- `服务器`: get server info
+- `服务器信息`: get server info
 
 just send any message with theses keyword above to robot, it will retrieve the information for you.
 
@@ -124,6 +124,51 @@ hitokoto handler doesn't need any configuration.
 send `一句话` to robot to get your hitokoto.
 
 thanks to [hitokoto.cn](https://hitokoto.cn/)
+
+## 3.5 Tgo Handler
+
+Tgo Handler can communicate with [Tgo API](https://p4gefau1t.github.io/trojan-go/advance/api/) through gRPC.
+
+> Currently only support user statistics query.
+
+### 3.5.1 config
+
+Tgo Handler is also a `message_handler`:
+
+```yaml
+handlers:
+    message_handler:
+        Tgo:
+            api_addr: "127.0.0.1"
+            api_port: 1444
+```
+
+- `handers.message_handler.Tgo`:
+    - `api_addr`: grpc API's host
+    - `api_port`: grpc API's port
+
+> Currently only insecure connection is supported (connection with no client certificate.)
+
+### 3.5.2 usage
+
+Send `我的流量` to the bot, and a query-for-password message will be sent from the bot.
+
+Select the message and choose `reply` and send you password to the bot.
+
+If your password is correct, user's info will be sent.
+
+```text
+USAGE           ⏳184.61MB(0.18Gb).
+SPEED           ⬆️0.00kb/s, ⬇️0.00kb/s
+SPEED LIMIT     ⬆️0.00kb/s, ⬇️0.00kb/s
+ONLINE DEVICE   💻 0(current) 0(total)
+```
+
+Password will be cached by the bot. So you can text `我的流量` next time for this information.
+
+### 3.5.3 TODO
+
+- [ ] Add Command for user CURD.
 
 # 4. Add Custom Handler
 

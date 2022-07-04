@@ -168,6 +168,7 @@ Password will be cached by the bot. So you can text `我的流量` next time for
 
 ### 3.5.3 TODO
 
+- [ ] Add Secure gRPC connection.
 - [ ] Add Command for user CURD.
 
 # 4. Add Custom Handler

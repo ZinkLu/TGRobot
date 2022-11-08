@@ -141,11 +141,23 @@ handlers:
         Tgo:
             api_addr: "127.0.0.1"
             api_port: 1444
+            use_cert: true 
+            sni: example.com 
+            ca_cert_path: []
+            cert_path: client.crt 
+            cert_key: client.key
+            verify: true
 ```
 
 - `handers.message_handler.Tgo`:
     - `api_addr`: grpc API's host
     - `api_port`: grpc API's port
+    - `use_cert`: use cert to connect to server or not, but have cert_path and cert_key filled
+    - `sni`: sni, if your api_addr is a IP address(like `127.0.0.1`), it will be used to verify cert's Domain information
+    - `ca_cert_path`: if you use a self signed cert, put your ca cert here
+    - `cert_path`: client cert. You should also add the cert to trojan server trust list, see [here](https://p4gefau1t.github.io/trojan-go/developer/api/)
+    - `cert_key`: client key
+    - `verify`: verify server client or not, `true` is alway recommanded
 
 > Currently only insecure connection is supported (connection with no client certificate.)
 
@@ -168,7 +180,7 @@ Password will be cached by the bot. So you can text `我的流量` next time for
 
 ### 3.5.3 TODO
 
-- [ ] Add Secure gRPC connection.
+- [x] Add Secure gRPC connection.
 - [ ] Add Command for user CURD.
 
 # 4. Add Custom Handler

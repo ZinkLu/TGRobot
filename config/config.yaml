@@ -5,5 +5,14 @@ handlers:
       username: xxx
       password: xxx
       serverId: xxx
+    Tgo:
+      api_addr: 127.0.0.1
+      api_port: 10000
+      use_cert: true # use cert to connect to server or not, but have cert_path and cert_key filled
+      sni: example.com # sni, if your api_addr is a IP address, it will be used to verify cert's Domain information
+      ca_cert_path: [] # if you use a self signed cert, then your ca cert should put here if you need verification
+      cert_path: client.crt # client cert, you should add the cert to trojan server trust list
+      cert_key: client.key # client key
+      verify: true # verify server client or not, `true` is alway recommanded
 apiToken: ""
 debug: true

@@ -4,7 +4,9 @@ package tgo
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/ZinkLu/TGRobot/handlers/message_handler"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 const HELP = "查询\"我的流量\"(私信我)"
@@ -53,7 +56,7 @@ func formatTraffic(response *GetUsersResponse) string {
 func (tgo *TGoHandler) GetUserStatus(password string) (*GetUsersResponse, error) {
 	if tgo.Client == nil {
 		log.Println("tgo.Client has not be init, Call tgo.Init first")
-		return nil, fmt.Errorf("No Client available")
+		return nil, fmt.Errorf("no client available")
 	}
 
 	user := &User{Password: password}
@@ -61,6 +64,11 @@ func (tgo *TGoHandler) GetUserStatus(password string) (*GetUsersResponse, error)
 	log.Println("Call rpc from server")
 	// response, err := tgo.Client.GetTraffic(context.TODO(), in)
 	client, err := tgo.Client.GetUsers(context.TODO())
+	if err != nil {
+		log.Printf("call rpc server failed")
+		log.Print(err.Error())
+		return nil, err
+	}
 	defer client.CloseSend()
 
 	client.Send(&GetUsersRequest{User: user})
@@ -128,13 +136,42 @@ func (tgo *TGoHandler) When(u *tgbotapi.Update) bool {
 }
 
 func (tgo *TGoHandler) Init(config *config.ConfigUnmarshaler) {
-	c := &Config{}
-	err := config.UnmarshalConfig(c, tgo.Name())
+	var c = &Config{}
+	var err = config.UnmarshalConfig(c, tgo.Name())
+	var conn *grpc.ClientConn
+
 	if err != nil {
 		log.Printf("%s handler init failed %s", tgo.Name(), err)
 		panic(err)
 	}
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", c.Addr, c.Port), grpc.WithInsecure())
+
+	if c.UserCert && c.CertPath != "" && c.CertKey != "" {
+		clientCert, certErr := tls.LoadX509KeyPair(c.CertPath, c.CertKey)
+		if certErr != nil {
+			log.Fatalf(certErr.Error())
+		}
+
+		var tlsConfig = &tls.Config{
+			InsecureSkipVerify: !c.Verify,
+			Certificates:       []tls.Certificate{clientCert},
+			ServerName:         c.SNI,
+		}
+		if len(c.CaPaths) > 0 {
+			pool := tlsConfig.RootCAs
+			for _, path := range c.CaPaths {
+				bytes, ioErr := ioutil.ReadFile(path)
+				if ioErr != nil {
+					continue
+				}
+				pool.AppendCertsFromPEM(bytes)
+			}
+		}
+
+		var tlsCredential = credentials.NewTLS(tlsConfig)
+		conn, err = grpc.Dial(fmt.Sprintf("%s:%d", c.Addr, c.Port), grpc.WithTransportCredentials(tlsCredential))
+	} else {
+		conn, err = grpc.Dial(fmt.Sprintf("%s:%d", c.Addr, c.Port), grpc.WithInsecure())
+	}
 	if err != nil {
 		log.Printf("%s handler init failed while connect to gRPC server %s", tgo.Name(), err)
 		panic(err)

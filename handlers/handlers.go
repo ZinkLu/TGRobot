@@ -4,16 +4,19 @@ import (
 	"github.com/ZinkLu/TGRobot/config"
 	"github.com/ZinkLu/TGRobot/pool"
 
+	"github.com/ZinkLu/TGRobot/handlers/cron_handler"
 	"github.com/ZinkLu/TGRobot/handlers/inline_keyboard_handler"
-
 	"github.com/ZinkLu/TGRobot/handlers/message_handler"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	/*
 	 for register app handler
 	*/
+	_ "github.com/ZinkLu/TGRobot/handlers/cron_handler/tgo_traffic_notice"
 	_ "github.com/ZinkLu/TGRobot/handlers/inline_keyboard_handler/inline_keyboard_test_handler"
 	_ "github.com/ZinkLu/TGRobot/handlers/inline_keyboard_handler/vmshell"
+	_ "github.com/ZinkLu/TGRobot/handlers/message_handler"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/send_keyboard_test_handler"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/tgo"
 	_ "github.com/ZinkLu/TGRobot/handlers/message_handler/vmshell"
@@ -32,8 +35,14 @@ func GetHandlers(config *config.GlobalConfig) []TelegramHandlerInterface {
 	inline_keyboard_handler.INLINE_KEYBOARD_HANDLER.Init(config.HandlersConfig.InlineKeyBoardHandler)
 	pool.AddAppHandler(inline_keyboard_handler.INLINE_KEYBOARD_HANDLER.AppHandlers...)
 
+	cron_handler.CRON_HANDLER.Init(config.HandlersConfig.CronHandler)
+	for _, v := range cron_handler.CRON_HANDLER.AppHandlers {
+		pool.AddAppHandler(v)
+	}
+
 	return []TelegramHandlerInterface{
 		message_handler.MESSAGE_HANDLER,
 		inline_keyboard_handler.INLINE_KEYBOARD_HANDLER,
+		cron_handler.CRON_HANDLER,
 	}
 }

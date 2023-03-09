@@ -10,7 +10,7 @@ import (
 )
 
 type HandlerConfig struct {
-	MessageHandler, CommandHandler, InlineKeyBoardHandler *ConfigUnmarshaler
+	MessageHandler, CommandHandler, InlineKeyBoardHandler, CronHandler *ConfigUnmarshaler
 }
 
 type GlobalConfig struct {
@@ -57,18 +57,18 @@ func addHandlerConfig(config *GlobalConfig) {
 			hc.CommandHandler = &ConfigUnmarshaler{ch}
 		}
 	}
+	cronHandler, ok := hs["cron_handler"]
+	if ok {
+		ch, ok := cronHandler.(Config)
+		if ok {
+			hc.CronHandler = &ConfigUnmarshaler{ch}
+		}
+	}
 	config.HandlersConfig = hc
 }
 
 /*
-	for debug usage
-
-
-
-
-
-
-
+for debug usage
 */
 func Filename() (string, error) {
 	_, filename, _, ok := runtime.Caller(1)

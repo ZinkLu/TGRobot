@@ -16,3 +16,4 @@ vendor/
 tmp/
 *secret.json
 TGRobot
+trojan/

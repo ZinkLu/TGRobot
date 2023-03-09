@@ -14,5 +14,10 @@ handlers:
       cert_path: client.crt # client cert, you should add the cert to trojan server trust list
       cert_key: client.key # client key
       verify: true # verify server client or not, `true` is alway recommanded
+  cron_handler:
+    TgoTrafficNotice:
+      enabled: true
+      interval: 60
+      total_traffic: 10
 apiToken: ""
 debug: true

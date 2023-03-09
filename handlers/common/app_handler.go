@@ -15,3 +15,8 @@ type AppHandlerInterface interface {
 	Help() string
 	Name() string
 }
+
+type CronHandlerInterface interface {
+	AppHandlerInterface
+	Every() int // disabled if return value <0
+}

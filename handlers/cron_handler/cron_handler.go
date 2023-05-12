@@ -42,6 +42,9 @@ func (h *CronHandler) helper() {
 }
 
 func (h *CronHandler) handleSubscribe(update *tgbotapi.Update, bot *tgbotapi.BotAPI) {
+	if update.Message == nil {
+		return
+	}
 	chatId := update.Message.Chat.ID
 	switch update.Message.Text {
 	case "subscribe":
@@ -66,7 +69,6 @@ func (h *CronHandler) handleSubscribe(update *tgbotapi.Update, bot *tgbotapi.Bot
 	}
 }
 
-// fixme: can only be trigger by sending message...
 func (h *CronHandler) Handle(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	h.handleSubscribe(&update, bot)
 }
